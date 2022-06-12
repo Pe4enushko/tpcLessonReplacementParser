@@ -55,37 +55,47 @@ namespace tpcParcer
                 }
                 
             });
-            loaderThread.Start();
-            var path = DownloadExcel().Result;
-            var table = OpenExcel(path);
-            DataRow[] rows = table.Select($"Группа = '{Group}'");
-            loaderThread.Abort();
-            Console.Clear();
-            Console.WriteLine("Made by Pe4enushko");
-            Console.WriteLine("Замены для группы: " + Group + " на завтра.");
-            Console.WriteLine();
-            foreach (DataColumn col in table.Columns)
+            try
             {
-                Console.Write(col.ColumnName + " | ");
-            }
-            Console.WriteLine();
-            Console.WriteLine();
-            if (rows.Length > 0)
-            {
-                foreach (DataRow row in rows)
+                loaderThread.Start();
+                var path = DownloadExcel().Result;
+                var table = OpenExcel(path);
+                DataRow[] rows = table.Select($"Группа = '{Group}'");
+                loaderThread.Abort();
+                Console.Clear();
+                Console.WriteLine("Made by Pe4enushko");
+                Console.WriteLine("Замены для группы: " + Group + " на завтра.");
+                Console.WriteLine();
+                foreach (DataColumn col in table.Columns)
                 {
-                    foreach (var item in row.ItemArray)
-                    {
-                        Console.Write(item + "\t");
-                    }
-                    Console.WriteLine();
+                    Console.Write(col.ColumnName + " | ");
                 }
+                Console.WriteLine();
+                Console.WriteLine();
+                if (rows.Length > 0)
+                {
+                    foreach (DataRow row in rows)
+                    {
+                        foreach (var item in row.ItemArray)
+                        {
+                            Console.Write(item + "\t");
+                        }
+                        Console.WriteLine();
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Замен на завтра нет.");
+                }
+                Console.Read();
             }
-            else
+            catch(AggregateException)
             {
-                Console.WriteLine("Замен на завтра нет.");
+                loaderThread.Abort();
+                Console.Clear();
+                Console.WriteLine("Подключение к интернету смэрт, либо файл с заменами на завтра не выложен");
+                Console.Read();
             }
-            Console.Read();
         }
         /// <summary>
         /// 
@@ -109,8 +119,11 @@ namespace tpcParcer
             if (!Directory.Exists(path))
                 Directory.CreateDirectory(path);
             //path = Path.Combine(path, DateTime.Now.AddDays(1).ToString("dd-MM-yyyy.xlxs"));
-            webcl.DownloadFile(exclDownloadURL, Path.Combine(path,"test.xlsx"));
-            return Path.Combine(path, "test.xlsx");
+            
+            webcl.DownloadFile(exclDownloadURL, Path.Combine(path, "ZameniNaZavtra.xlsx"));
+            
+            
+            return Path.Combine(path, "ZameniNaZavtra.xlsx");
         }
         static DataTable OpenExcel(string path)
         {
